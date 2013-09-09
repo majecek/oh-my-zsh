@@ -6,7 +6,8 @@ function _prlctl_commands() {
       subcommand)
         subcommands=(
           "list:List all running instances"
-          "reset:Reset"
+          "reset:Reset UIID"
+          "delete:Delete UIID"
         )
         _describe -t subcommands 'prlctl subcommands' subcommands && ret=0
     esac
@@ -14,4 +15,8 @@ function _prlctl_commands() {
     return ret
 }
 
-compdef _prlctl_commands prlctl
+function _prlctl_commands_auto() {
+	prlctl | sed "1,/Supported actions are:/d"  | awk '/^  [a-z]+/ { print $1 }'
+}
+
+compdef _prlctl_commands_auto prlctl
