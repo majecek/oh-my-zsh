@@ -15,14 +15,14 @@ _prlctl () {
     case "${cmd}" in
       list)
         _arguments : \
-          "-r[re-encrypt existing passwords]" \
-          "--reencrypt[re-encrypt existing passwords]"
+          "-i[<ID | NAME>]" \
+          "--info[<ID | NAME>]" \
         ;;
-      snapshot-list)
-        _arguments : \
-          "-r[re-encrypt existing passwords]" \
-          "--reencrypt[re-encrypt existing passwords]"
-        ;;
+      # snapshot-list)
+      #   _arguments : \
+      #     "-r[re-encrypt existing passwords]" \
+      #     "--reencrypt[re-encrypt existing passwords]"
+      #   ;;
     esac
   else  
     local -a commands
