@@ -18,42 +18,25 @@ _prlctl () {
           "-i[<ID | NAME>]" \
           "--info[<ID | NAME>]" \
         ;;
-      # snapshot-list)
-      #   _arguments : \
-      #     "-r[re-encrypt existing passwords]" \
-      #     "--reencrypt[re-encrypt existing passwords]"
-      #   ;;
+      snapshot-list)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+		    _describe -t commands 'prlctl snapshot-list' uiid_lists
+
+        ;;
     esac
   else  
     local -a commands
     commands=(
+      "help:Help"
       "list:Lists the virtual machines currently existing on the Parallels server"
       "snapshot-list:This command is used to list Vm tree"
-      "help:Help"
     )
     _describe -t commands 'prlctl' commands
     _arguments : \
       "--version[Output version information]" \
       "--help[Output help message]"
-
   fi      
 }
 
-
-# function _prlctl_commands() {
-#     local ret=1 state
-#     _arguments ':subcommand:->subcommand' && ret=0
-
-#     case $state in
-#       subcommand)
-#         subcommands=(
-#           "list:List all running instances"
-#           "reset:Reset"
-#         )
-#         _describe -t subcommands 'prlctl subcommands' subcommands && ret=0
-#     esac
-
-#     return ret
-# }
-
-# compdef _prlctl_commands prlctl
+compdef _prlctl prlctl
