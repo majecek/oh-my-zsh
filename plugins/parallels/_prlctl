@@ -4,6 +4,8 @@
 _prlctl () {
 
   local cmd
+  local curcontext="$curcontext" state line
+
   if (( CURRENT > 2)); then
     cmd=${words[2]}
     # Set the context for the subcommand.
@@ -22,15 +24,126 @@ _prlctl () {
         local -a uiid_lists
         uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
 		    _describe -t commands 'prlctl snapshot-list' uiid_lists
+        ;;
+      
+      enter)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl enter' uiid_lists
+        ;;
+
+      reset)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl reset' uiid_lists
+        ;;
+
+      resume)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl resume' uiid_lists
+        ;;
+
+      restart)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl restart' uiid_lists
+        ;;
+
+      (start|stop)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl start' uiid_lists
+        ;;
+
+     
+
+      status)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        
+        _arguments: \
+          ":statusID:"
+
+        _describe -t commands 'prlctl status' uiid_lists
+        ;;
+
+      snapshot)
+        local -a VM_lists
+        VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
+        # _describe -t commands 'prlctl snapshot' uiid_lists
+        
+          _arguments :  \
+            "-n[Name]"  \
+            "-d[Description]" \
+            ':test:(($VM_lists))'
 
         ;;
+
+      snapshot-delete)     
+        local -a VM_lists 
+        local -a SNAPS_lists
+
+        if [[ "$words[2]" == "" ]]; then
+        
+          # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+          # _describe -t commands 'prlctl snapshot-delete' uiid_lists
+          
+          VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
+          _arguments :  \
+            '-i:aaaaa:bbbb'\
+            ':test:(($VM_lists))'
+        
+        else
+
+          # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}}})
+          # _describe -t commands 'prlctl snapshot-delete $words[1] -i ' uiid_lists
+
+          SNAPS_lists=(${${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}}})  
+          _describe -t commands 'prlctl snapshot-delete $words[1] -i ' SNAPS_lists
+          # _arguments :  \
+          #   '-i:test:(($SNAPS_lists))'
+        fi
+        ;;
+
+      snapshot-switch)
+        local -a uiid_lists
+        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        _describe -t commands 'prlctl snapshot-switch' uiid_lists
+        ;;
+
+      suspend)
+         local -a uiid_lists
+         uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+         _describe -t commands 'prlctl suspend' uiid_lists
+
+        # _arguments \
+         # ':feature:__git_flow_feature_list1'\
+        ;;
+
+      
+        
+
     esac
   else  
     local -a commands
     commands=(
       "help:Help"
       "list:Lists the virtual machines currently existing on the Parallels server"
+      "delete:Delete VM"
       "snapshot-list:This command is used to list Vm tree"
+      "enter:Get into VM"
+      "reset:Reset VM"
+      "resume:Resume VM"
+      "restart:Restart VM"
+      "start:Start VM"
+      "stop:Stop VM"
+      "status:Status VM"
+      "snapshot:Creates snapshot for VM"
+      "snapshot-delete:Deletes snapshots of VM"
+      "snapshot-switch:Switch snapshot for VM"
+      "suspend:Suspend given VM"
+
     )
     _describe -t commands 'prlctl' commands
     _arguments : \
@@ -38,5 +151,51 @@ _prlctl () {
       "--help[Output help message]"
   fi      
 }
+
+# __git_remotes () {
+#   local expl gitdir remotes
+
+#   gitdir=$(_call_program gitdir git rev-parse --git-dir 2>/dev/null)
+#   __git_command_successful || return
+
+#   remotes=(${${(f)"$(_call_program remotes git config --get-regexp '"^remote\..*\.url$"')"}//#(#b)remote.(*).url */$match[1]})
+#   __git_command_successful || return
+
+#   # TODO: Should combine the two instead of either or.
+#   if (( $#remotes > 0 )); then
+#     _wanted remotes expl remote compadd $* - $remotes
+#   else
+#     _wanted remotes expl remote _files $* - -W "($gitdir/remotes)" -g "$gitdir/remotes/*"
+#   fi
+# }
+
+# __git_remotes1 () {
+#   local expl gitdir remotes
+#   remotes=()
+#     _wanted remotes expl remote compadd $* - $remotes
+# }
+
+
+# __git_flow_feature_list1 ()
+# {
+#   local expl
+#   declare -a features
+
+#   # features=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g' | tr -d ' |*')"}}})
+  
+#   _wanted features expl 'feature' compadd $features
+# }
+
+
+# __git_flow_feature_list ()
+# {
+#   local expl
+#   declare -a features
+
+#   features=(${${(f)"$(_call_program features prlctl snapshot-list | tr -d ' |*')"}})
+#   __git_command_successful || return
+
+#   _wanted features expl 'feature' compadd $features
+# }
 
 compdef _prlctl prlctl
