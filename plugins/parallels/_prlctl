@@ -17,8 +17,7 @@ _prlctl () {
     case "${cmd}" in
       list)
         _arguments : \
-          "-i[<ID | NAME>]" \
-          "--info[<ID | NAME>]" \
+          "-a" \
         ;;
       snapshot-list)
         local -a uiid_lists
@@ -26,92 +25,31 @@ _prlctl () {
 		    _describe -t commands 'prlctl snapshot-list' uiid_lists
         ;;
       
-      enter)
+      (delete|pause|enter|reset|resume|restart|start|status|stop|suspend|unregister)
         local -a uiid_lists
         uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
         _describe -t commands 'prlctl enter' uiid_lists
         ;;
 
-      reset)
-        local -a uiid_lists
-        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        _describe -t commands 'prlctl reset' uiid_lists
-        ;;
-
-      resume)
-        local -a uiid_lists
-        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        _describe -t commands 'prlctl resume' uiid_lists
-        ;;
-
-      restart)
-        local -a uiid_lists
-        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        _describe -t commands 'prlctl restart' uiid_lists
-        ;;
-
-      (start|stop)
-        local -a uiid_lists
-        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        _describe -t commands 'prlctl start' uiid_lists
-        ;;
-
-     
-
-      status)
-        local -a uiid_lists
-        uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        
-        _arguments: \
-          ":statusID:"
-
-        _describe -t commands 'prlctl status' uiid_lists
-        ;;
-
       snapshot)
         local -a VM_lists
         VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
-        # _describe -t commands 'prlctl snapshot' uiid_lists
         
-          _arguments :  \
-            "-n[Name]"  \
-            "-d[Description]" \
-            ':test:(($VM_lists))'
-
+        _arguments :  \
+          "-n[Name]"  \
+          "-d[Description]" \
+          ': :(($VM_lists))'
         ;;
 
       snapshot-delete)     
         local -a VM_lists 
         local -a SNAPS_lists
 
-        # if [[ "$words[2]" == "" ]]; then
-        
-        #   # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-        #   # _describe -t commands 'prlctl snapshot-delete' uiid_lists
-          
-        #   VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
-        #   _arguments :  \
-        #     '-i:aaaaa:bbbb'\
-        #     ':test:(($VM_lists))'
-        
-        # else
-
-        #   SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
-
-        #    # _describe -t commands 'prlctl ' SNAPS_lists
-          
-        #   _arguments : \
-        #     '-i:test:(($SNAPS_lists))'
-
-        # fi
-        
-
         VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
 
         _arguments :  \
-            '-i:aa:__prlctl_snapshots'\
-            ':test:(($VM_lists))'
-
+            '-i: :__prlctl_snapshots'\
+            ': :(($VM_lists))'
         ;;
 
       snapshot-switch)
@@ -120,15 +58,6 @@ _prlctl () {
         _describe -t commands 'prlctl snapshot-switch' uiid_lists
         ;;
 
-      suspend)
-         local -a uiid_lists
-         uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-         _describe -t commands 'prlctl suspend' uiid_lists
-        ;;
-
-      
-        
-
     esac
   else  
     local -a commands
@@ -136,7 +65,7 @@ _prlctl () {
       "help:Help"
       "list:Lists the virtual machines currently existing on the Parallels server"
       "delete:Delete VM"
-      "snapshot-list:This command is used to list Vm tree"
+      "pause:Pause VM"
       "enter:Get into VM"
       "reset:Reset VM"
       "resume:Resume VM"
@@ -144,11 +73,12 @@ _prlctl () {
       "start:Start VM"
       "stop:Stop VM"
       "status:Status VM"
+      "suspend:Suspend given VM"
+      "unregister:Unregister given VM"
       "snapshot:Creates snapshot for VM"
+      "snapshot-list:This command is used to list Vm tree"
       "snapshot-delete:Deletes snapshots of VM"
       "snapshot-switch:Switch snapshot for VM"
-      "suspend:Suspend given VM"
-
     )
     _describe -t commands 'prlctl' commands
     _arguments : \
