@@ -108,16 +108,9 @@ _prlctl () {
 
         VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
 
-        if [[ "$words[2]" == "" ]]; then 
-          SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
-        else
-          SNAPS_lists=('aa')  
-        fi
-          _arguments :  \
-            '-i:aaaaa:__prlctl_snapshots'\
+        _arguments :  \
+            '-i:aa:__prlctl_snapshots'\
             ':test:(($VM_lists))'
-
-
 
         ;;
 
@@ -168,6 +161,7 @@ __prlctl_snapshots() {
     local expl
     declare -a SNAPS_lists
     SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
+
     _wanted SNAPS_lists expl prlctl compadd $* - $SNAPS_lists
 }
 
