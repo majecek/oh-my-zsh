@@ -84,26 +84,41 @@ _prlctl () {
         local -a VM_lists 
         local -a SNAPS_lists
 
-        if [[ "$words[2]" == "" ]]; then
+        # if [[ "$words[2]" == "" ]]; then
         
-          # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
-          # _describe -t commands 'prlctl snapshot-delete' uiid_lists
+        #   # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
+        #   # _describe -t commands 'prlctl snapshot-delete' uiid_lists
           
-          VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
-          _arguments :  \
-            '-i:aaaaa:bbbb'\
-            ':test:(($VM_lists))'
+        #   VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
+        #   _arguments :  \
+        #     '-i:aaaaa:bbbb'\
+        #     ':test:(($VM_lists))'
         
+        # else
+
+        #   SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
+
+        #    # _describe -t commands 'prlctl ' SNAPS_lists
+          
+        #   _arguments : \
+        #     '-i:test:(($SNAPS_lists))'
+
+        # fi
+        
+
+        VM_lists=(${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1\:\3/g')"})
+
+        if [[ "$words[2]" == "" ]]; then 
+          SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
         else
-
-          # uiid_lists=(${${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}}})
-          # _describe -t commands 'prlctl snapshot-delete $words[1] -i ' uiid_lists
-
-          SNAPS_lists=(${${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}}})  
-          _describe -t commands 'prlctl snapshot-delete $words[1] -i ' SNAPS_lists
-          # _arguments :  \
-          #   '-i:test:(($SNAPS_lists))'
+          SNAPS_lists=('aa')  
         fi
+          _arguments :  \
+            '-i:aaaaa:__prlctl_snapshots'\
+            ':test:(($VM_lists))'
+
+
+
         ;;
 
       snapshot-switch)
@@ -116,9 +131,6 @@ _prlctl () {
          local -a uiid_lists
          uiid_lists=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g')"}}})
          _describe -t commands 'prlctl suspend' uiid_lists
-
-        # _arguments \
-         # ':feature:__git_flow_feature_list1'\
         ;;
 
       
@@ -152,50 +164,13 @@ _prlctl () {
   fi      
 }
 
-# __git_remotes () {
-#   local expl gitdir remotes
-
-#   gitdir=$(_call_program gitdir git rev-parse --git-dir 2>/dev/null)
-#   __git_command_successful || return
-
-#   remotes=(${${(f)"$(_call_program remotes git config --get-regexp '"^remote\..*\.url$"')"}//#(#b)remote.(*).url */$match[1]})
-#   __git_command_successful || return
-
-#   # TODO: Should combine the two instead of either or.
-#   if (( $#remotes > 0 )); then
-#     _wanted remotes expl remote compadd $* - $remotes
-#   else
-#     _wanted remotes expl remote _files $* - -W "($gitdir/remotes)" -g "$gitdir/remotes/*"
-#   fi
-# }
-
-# __git_remotes1 () {
-#   local expl gitdir remotes
-#   remotes=()
-#     _wanted remotes expl remote compadd $* - $remotes
-# }
+__prlctl_snapshots() {
+    local expl
+    declare -a SNAPS_lists
+    SNAPS_lists=(${${(f)"$(_call_program uiis  prlctl snapshot-list $words[2] | sed '1d' | cut -c 42-77 )"}})  
+    _wanted SNAPS_lists expl prlctl compadd $* - $SNAPS_lists
+}
 
 
-# __git_flow_feature_list1 ()
-# {
-#   local expl
-#   declare -a features
-
-#   # features=(${${${(f)"$(_call_program uiis  prlctl list --all | sed '1d' | sed 's/{\(.*\)}\(.*-\)\(.*\)/\1:\3/g' | tr -d ' |*')"}}})
-  
-#   _wanted features expl 'feature' compadd $features
-# }
-
-
-# __git_flow_feature_list ()
-# {
-#   local expl
-#   declare -a features
-
-#   features=(${${(f)"$(_call_program features prlctl snapshot-list | tr -d ' |*')"}})
-#   __git_command_successful || return
-
-#   _wanted features expl 'feature' compadd $features
-# }
 
 compdef _prlctl prlctl
